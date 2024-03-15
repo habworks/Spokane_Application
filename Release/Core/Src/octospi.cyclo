@@ -1,0 +1,3 @@
+octospi.c:31:6:MX_OCTOSPI1_Init	3
+octospi.c:73:6:HAL_OSPI_MspInit	4
+octospi.c:148:6:HAL_OSPI_MspDeInit	2

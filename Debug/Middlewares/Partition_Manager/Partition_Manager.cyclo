@@ -1,0 +1,7 @@
+../Middlewares/Partition_Manager/Partition_Manager.c:13:6:Mount_Memory_Drive	3
+../Middlewares/Partition_Manager/Partition_Manager.c:39:6:Format_Memory_Drive	1
+../Middlewares/Partition_Manager/Partition_Manager.c:50:6:Create_Partition	7
+../Middlewares/Partition_Manager/Partition_Manager.c:94:6:Does_Partition_Exist	4
+../Middlewares/Partition_Manager/Partition_Manager.c:112:6:Memory_Drive_Write	5
+../Middlewares/Partition_Manager/Partition_Manager.c:141:6:Memory_Drive_Read	5
+../Middlewares/Partition_Manager/Partition_Manager.c:186:6:Is_Drive_Formated	2

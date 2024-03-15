@@ -1,0 +1,12 @@
+UART.c:260:13:UART_Tasks	6
+UART.c:21:8:Init_DMA_UART	3
+UART.c:59:6:Enable_UART	1
+UART.c:70:6:Disable_UART	1
+UART.c:76:8:Init_SUDO_UART	2
+UART.c:93:9:UART_Transmit	7
+UART.c:143:9:UART_Receive	7
+UART.c:208:6:UART_Flush_TX	4
+UART.c:185:6:Modify_UART_Baudrate	2
+UART.c:220:6:HAL_UART_TxCpltCallback	3
+UART.c:236:6:HAL_UART_RxCpltCallback	1
+UART.c:241:6:HAL_UART_ErrorCallback	3

@@ -84,14 +84,6 @@ void Init_Some(void * Task_Data)//Is a task
 	{
 	case 0://HAL INIT
 	{
-		//UART_4 = Init_DMA_UART(&huart4);//GPS
-		//UART_2 =  Init_DMA_UART(&huart2);//UART for Console
-		//UART_3 =  Init_DMA_UART(&huart3);//NXP/Radar
-		//UART_5 =  Init_DMA_UART(&huart5);//4G
-		//Init_Console(UART_2, Print_Startup_Banner);//Starts a task
-		//I2C_1 = Init_I2C(&hi2c1);//Init the mag I2c
-		//HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_SET);
-		//OSPI_1 = Init_OSPI(&hospi1);
 	    printf("\033[2J\033[H");
 	    printf("Hello Hab\r\n");
 	    initTest();
@@ -102,26 +94,23 @@ void Init_Some(void * Task_Data)//Is a task
 
 	case 1:// INIT DRIVERS
 	{
-		//*******
-			//Init_Radar_LOG_Parser(UART_3);
-		//********
-			//Init_LG77LICMD(UART_4, NULL);//NULL b/c there is no pin to enable the GPS
-			//GPS_Module_RESET();//Must toggle the reset pin because NMEA data will not stream otherwise
-		//********
-			//Init_Magnetometer(I2C_1, IIS2MDC_NVM_write, IIS2MDC_NVM_read, MAG_ADDRESS_OFFSET_X_CAL, MAG_ADDRESS_OFFSET_Y_CAL);
-		//********
-			//Init_Nimbelink_QBG96(UART_5, "data.apn.name");
-		//********
-		OSPI_Set_Features(&hospi1);//0x1F
+//		OSPI_Set_Features(&hospi1);//0x1F
 		OSPI_Reset(&hospi1);//0xFF
-//		OSPI_Get_Features(&hospi1);//0x0f
+//		OSPI_Set_Features(&hospi1);//0x1F
 		while ((OSPI_Get_Features(&hospi1) & MT29F_STATUS_MASK_OIP) != 0);
 	//	OSPI_Read_ID(&hospi1);//0x9F
 
 	//	OSPI_Set_Features(&hospi1);
 
 		OSPI_WriteEnable(&hospi1);//0x06
-		OSPI_Get_Features(&hospi1);//0x0f
+		uint8_t Status;
+		do
+		{
+		    Status = OSPI_Get_Features(&hospi1);
+		} while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
+
+
+
 
 		OSPI_Erase_Block(&hospi1);//0xD8
 		OSPI_Get_Features(&hospi1);//0x0f

@@ -44,11 +44,12 @@ void CS_LOW(void);
 *
 * @param hospi: OctoSpi Handler
 *
-* STEP 1: Load and execute command
+* STEP 1: Load command struct
+* STEP 2: Execute command
 * *****************************************************************************************************/
 void OSPI_Reset(OSPI_HandleTypeDef *hospi)
 {
-    // STEP 1: Load and execute command
+    // STEP 1: Load command struct
     OSPI_RegularCmdTypeDef  sCommand;
     sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
     sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
@@ -65,7 +66,8 @@ void OSPI_Reset(OSPI_HandleTypeDef *hospi)
     sCommand.DataMode           = HAL_OSPI_DATA_NONE;
     sCommand.NbData             = 0;
     sCommand.DummyCycles        = 0;
-    // Execute command
+
+    // STEP 2: Execute command
     if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
     {
         Error_Handler();
@@ -80,17 +82,20 @@ void OSPI_Reset(OSPI_HandleTypeDef *hospi)
 *
 * @author original: Victoria modified by Hab Collector \n
 *
-* @note: Auto polling may subsitute for this
+* @note: Auto polling may substitute for this
 *
 * @param hospi: OctoSpi Handler
 *
-* STEP 1: Load and execute command and receive response
+* @return Status register value
+*
+* STEP 1: Load command struct
+* STEP 2: Execute command and get the response
 * *****************************************************************************************************/
 uint8_t OSPI_Get_Features(OSPI_HandleTypeDef *hospi)
 {
-    uint8_t reg;
+    uint8_t StatusRegisterValue;
 
-    // STEP 1: Load and execute command and receive response
+    // STEP 1: Load command struct
     OSPI_RegularCmdTypeDef  sCommand;
     sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
     sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
@@ -109,22 +114,87 @@ uint8_t OSPI_Get_Features(OSPI_HandleTypeDef *hospi)
     sCommand.DummyCycles        = 0;
     sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
     sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
-//    do
-//    {
-        // Execute command
-        if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-        {
-            Error_Handler();
-        }
-        // Receive Response
-        if (HAL_OSPI_Receive(hospi, &reg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-        {
-            Error_Handler();
-        }
-//    } while((reg[0] & MEMORY_READY_MASK_VALUE) != MEMORY_READY_MATCH_VALUE);//while not x00
-        return(reg);
+
+    // STEP 2: Execute command and get the response
+    if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    if (HAL_OSPI_Receive(hospi, &StatusRegisterValue, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+    {
+        Error_Handler();
+    }
+    return(StatusRegisterValue);
 
 } // END OF OSPI_Get_Features
+
+
+
+/******************************************************************************************************
+* @brief Enable write to the device.  The write enable is required for: Page Program, OTP Area Program
+* and Block Erase
+*
+* @author original: Victoria modified by Hab Collector \n
+*
+* @param hospi: OctoSpi Handler
+*
+* STEP 1: Load command struct
+* STEP 2: Execute command
+* *****************************************************************************************************/
+void OSPI_WriteEnable(OSPI_HandleTypeDef *hospi)
+{
+  OSPI_RegularCmdTypeDef  sCommand;
+
+  // STEP 1: Load command struct
+  sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
+  sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
+  sCommand.Instruction        = MT29F_CMD_WRITE_ENABLE;
+  sCommand.InstructionMode    = HAL_OSPI_INSTRUCTION_1_LINE;
+  sCommand.InstructionSize    = HAL_OSPI_INSTRUCTION_8_BITS;
+  sCommand.InstructionDtrMode = HAL_OSPI_INSTRUCTION_DTR_DISABLE;
+  sCommand.AddressMode        = HAL_OSPI_ADDRESS_NONE;
+  sCommand.AlternateBytesMode = HAL_OSPI_ALTERNATE_BYTES_NONE;
+  sCommand.DataMode           = HAL_OSPI_DATA_NONE;
+  sCommand.DummyCycles        = 0;
+  sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
+  sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
+
+  // STEP 2: Execute command
+  if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+
+//
+//  /* Configure automatic polling mode to wait for write enabling ---- */
+//  sCommand.Instruction    = MT29F_CMD_GET_FEATURES;
+//  sCommand.Address        = 0xC0;
+//  sCommand.AddressMode    = HAL_OSPI_ADDRESS_1_LINE;
+//  sCommand.AddressSize    = HAL_OSPI_ADDRESS_8_BITS;
+//  sCommand.AddressDtrMode = HAL_OSPI_ADDRESS_DTR_DISABLE;
+//  sCommand.DataMode       = HAL_OSPI_DATA_1_LINE;
+//  sCommand.DataDtrMode    = HAL_OSPI_DATA_DTR_DISABLE;
+//  sCommand.NbData         = 1;
+//  sCommand.DummyCycles    = 0;//DUMMY_CLOCK_CYCLES_READ_REG;
+//
+//  //CS_LOW();
+//  do//NOt sure if to wait here or not
+//  {
+//
+//    if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+//    {
+//      Error_Handler();
+//    }
+//
+//    if (HAL_OSPI_Receive(hospi, reg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+//    {
+//      Error_Handler();
+//    }
+//  } while((reg[0] & WRITE_ENABLE_MASK_VALUE) != WRITE_ENABLE_MATCH_VALUE);//when matches x02, we know write enable is ready
+
+
+} // END OF OSPI_WriteEnable
 
 
 
@@ -139,63 +209,7 @@ MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef * bus_handle)
 
 
 
-void OSPI_WriteEnable(OSPI_HandleTypeDef *hospi)
-{
-  OSPI_RegularCmdTypeDef  sCommand;
 
-  uint8_t reg[2];
-
-  /* Enable write operations ------------------------------------------ */
-
- sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
-  sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
-  sCommand.Instruction        = MT29F_CMD_WRITE_ENABLE;
-  sCommand.InstructionMode    = HAL_OSPI_INSTRUCTION_1_LINE;
-  sCommand.InstructionSize    = HAL_OSPI_INSTRUCTION_8_BITS;
-  sCommand.InstructionDtrMode = HAL_OSPI_INSTRUCTION_DTR_DISABLE;
-  sCommand.AddressMode        = HAL_OSPI_ADDRESS_NONE;
-  sCommand.AlternateBytesMode = HAL_OSPI_ALTERNATE_BYTES_NONE;
-  sCommand.DataMode           = HAL_OSPI_DATA_NONE;
-  sCommand.DummyCycles        = 0;
-  sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
-  sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
-
-
-  if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-
-
-  /* Configure automatic polling mode to wait for write enabling ---- */
-  sCommand.Instruction    = MT29F_CMD_GET_FEATURES;
-  sCommand.Address        = 0xC0;
-  sCommand.AddressMode    = HAL_OSPI_ADDRESS_1_LINE;
-  sCommand.AddressSize    = HAL_OSPI_ADDRESS_8_BITS;
-  sCommand.AddressDtrMode = HAL_OSPI_ADDRESS_DTR_DISABLE;
-  sCommand.DataMode       = HAL_OSPI_DATA_1_LINE;
-  sCommand.DataDtrMode    = HAL_OSPI_DATA_DTR_DISABLE;
-  sCommand.NbData         = 1;
-  sCommand.DummyCycles    = 0;//DUMMY_CLOCK_CYCLES_READ_REG;
-
-  //CS_LOW();
-  do//NOt sure if to wait here or not
-  {
-
-    if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-    {
-      Error_Handler();
-    }
-
-    if (HAL_OSPI_Receive(hospi, reg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-    {
-      Error_Handler();
-    }
-  } while((reg[0] & WRITE_ENABLE_MASK_VALUE) != WRITE_ENABLE_MATCH_VALUE);//when matches x02, we know write enable is ready
-
-
-}
 
 void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi)
 {

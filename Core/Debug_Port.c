@@ -114,7 +114,8 @@ void Init_Some(void * Task_Data)//Is a task
 		//********
 		OSPI_Set_Features(&hospi1);//0x1F
 		OSPI_Reset(&hospi1);//0xFF
-		OSPI_Get_Features(&hospi1);//0x0f
+//		OSPI_Get_Features(&hospi1);//0x0f
+		while ((OSPI_Get_Features(&hospi1) & MT29F_STATUS_MASK_OIP) != 0);
 	//	OSPI_Read_ID(&hospi1);//0x9F
 
 	//	OSPI_Set_Features(&hospi1);

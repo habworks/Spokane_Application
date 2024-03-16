@@ -29,6 +29,7 @@ extern"C" {
 #define MT29F_CMD_SET_FEATURES              0x1F
 #define MT29F_CMD_PAGE_READ                 0x13
 #define MT29F_CMD_PROGRAM_EXECUTE           0x10
+#define MT29F_CMD_BLOCK_ERASE               0xD8
 // MT29F REGISTER_ADDRESS
 #define MT29F_REG_BLOCK_LOCK                0xA0
 #define MT29F_REG_CONFIG                    0xB0
@@ -74,19 +75,22 @@ typedef struct
 
 
 // FUNCTION PROTOTYPES
-MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef * bus_handle);
-void OSPI_WriteEnable(OSPI_HandleTypeDef *hospi);
-void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi);
-void OSPI_Erase_Block(OSPI_HandleTypeDef *hospi);
+void OSPI_Reset(OSPI_HandleTypeDef *hospi);
 uint8_t OSPI_Get_Features(OSPI_HandleTypeDef *hospi);
+void OSPI_WriteEnable(OSPI_HandleTypeDef *hospi);
+void OSPI_Erase_Block(OSPI_HandleTypeDef *hospi, uint32_t BlockAddress);
+
+
+MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef * bus_handle);
+void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi);
 void OSPI_Program_Load(OSPI_HandleTypeDef *hospi);
 void OSPI_Program_Execute(OSPI_HandleTypeDef *hospi);
 void OSPI_Page_Read(OSPI_HandleTypeDef *hospi);
 void OSPI_Read_Cache_X4(OSPI_HandleTypeDef *hospi);
 void OSPI_Read_ID(OSPI_HandleTypeDef *hospi);
-void OSPI_Reset(OSPI_HandleTypeDef *hospi);
 void OSPI_Set_Features(OSPI_HandleTypeDef *hospi);
-void UselessFunct(void);
+
+
 bool readWriteCompare(void);
 void prepareForCompare(void);
 void initTest(void);

@@ -80,6 +80,7 @@ void Debug_Task(void)
 void Init_Some(void * Task_Data)//Is a task
 {
 	static int state = 0;
+	uint8_t Status;
 	switch(state)
 	{
 	case 0://HAL INIT
@@ -103,7 +104,6 @@ void Init_Some(void * Task_Data)//Is a task
 	//	OSPI_Set_Features(&hospi1);
 
 		OSPI_WriteEnable(&hospi1);//0x06
-		uint8_t Status;
 		do
 		{
 		    Status = OSPI_Get_Features(&hospi1);
@@ -112,8 +112,13 @@ void Init_Some(void * Task_Data)//Is a task
 
 
 
-		OSPI_Erase_Block(&hospi1);//0xD8
-		OSPI_Get_Features(&hospi1);//0x0f
+		OSPI_Erase_Block(&hospi1, ADDR);
+		do
+		{
+		    Status = OSPI_Get_Features(&hospi1);
+		} while ((Status & MT29F_STATUS_MASK_OIP) != 0);
+		if (Status & MT29F_STATUS_MASK_E_FAIL)
+		    printf("ERROR: Fail to erase block\r\n");
 		//OSPI_WriteDisable(&hospi1);//0x04
 		//OSPI_Get_Features(&hospi1);//0x0f
 

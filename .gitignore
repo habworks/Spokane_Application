@@ -1,6 +1,6 @@
 
 # Debug and Object files
-/Debug/
+Debug/
 *.o
 *.ko
 *.obj

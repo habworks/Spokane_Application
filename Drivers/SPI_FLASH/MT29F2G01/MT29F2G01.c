@@ -42,6 +42,9 @@ void CS_LOW(void);
 *
 * @author original: Victoria modified by Hab Collector \n
 *
+* @note: The reset command does not change the state of set features.  Set features can only be changed
+* by a subsequent command of set features
+*
 * @param hospi: OctoSpi Handler
 *
 * STEP 1: Load command struct
@@ -143,58 +146,75 @@ uint8_t OSPI_Get_Features(OSPI_HandleTypeDef *hospi)
 * *****************************************************************************************************/
 void OSPI_WriteEnable(OSPI_HandleTypeDef *hospi)
 {
-  OSPI_RegularCmdTypeDef  sCommand;
+    // STEP 1: Load command struct
+    OSPI_RegularCmdTypeDef  sCommand;
+    sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
+    sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
+    sCommand.Instruction        = MT29F_CMD_WRITE_ENABLE;
+    sCommand.InstructionMode    = HAL_OSPI_INSTRUCTION_1_LINE;
+    sCommand.InstructionSize    = HAL_OSPI_INSTRUCTION_8_BITS;
+    sCommand.InstructionDtrMode = HAL_OSPI_INSTRUCTION_DTR_DISABLE;
+    sCommand.AddressMode        = HAL_OSPI_ADDRESS_NONE;
+    sCommand.AlternateBytesMode = HAL_OSPI_ALTERNATE_BYTES_NONE;
+    sCommand.DataMode           = HAL_OSPI_DATA_NONE;
+    sCommand.DummyCycles        = 0;
+    sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
+    sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
 
-  // STEP 1: Load command struct
-  sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
-  sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
-  sCommand.Instruction        = MT29F_CMD_WRITE_ENABLE;
-  sCommand.InstructionMode    = HAL_OSPI_INSTRUCTION_1_LINE;
-  sCommand.InstructionSize    = HAL_OSPI_INSTRUCTION_8_BITS;
-  sCommand.InstructionDtrMode = HAL_OSPI_INSTRUCTION_DTR_DISABLE;
-  sCommand.AddressMode        = HAL_OSPI_ADDRESS_NONE;
-  sCommand.AlternateBytesMode = HAL_OSPI_ALTERNATE_BYTES_NONE;
-  sCommand.DataMode           = HAL_OSPI_DATA_NONE;
-  sCommand.DummyCycles        = 0;
-  sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
-  sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
-
-  // STEP 2: Execute command
-  if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-
-//
-//  /* Configure automatic polling mode to wait for write enabling ---- */
-//  sCommand.Instruction    = MT29F_CMD_GET_FEATURES;
-//  sCommand.Address        = 0xC0;
-//  sCommand.AddressMode    = HAL_OSPI_ADDRESS_1_LINE;
-//  sCommand.AddressSize    = HAL_OSPI_ADDRESS_8_BITS;
-//  sCommand.AddressDtrMode = HAL_OSPI_ADDRESS_DTR_DISABLE;
-//  sCommand.DataMode       = HAL_OSPI_DATA_1_LINE;
-//  sCommand.DataDtrMode    = HAL_OSPI_DATA_DTR_DISABLE;
-//  sCommand.NbData         = 1;
-//  sCommand.DummyCycles    = 0;//DUMMY_CLOCK_CYCLES_READ_REG;
-//
-//  //CS_LOW();
-//  do//NOt sure if to wait here or not
-//  {
-//
-//    if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-//    {
-//      Error_Handler();
-//    }
-//
-//    if (HAL_OSPI_Receive(hospi, reg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-//    {
-//      Error_Handler();
-//    }
-//  } while((reg[0] & WRITE_ENABLE_MASK_VALUE) != WRITE_ENABLE_MATCH_VALUE);//when matches x02, we know write enable is ready
-
+    // STEP 2: Execute command
+    if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+    {
+        Error_Handler();
+    }
 
 } // END OF OSPI_WriteEnable
+
+
+
+/******************************************************************************************************
+* @brief Erase block command is used to erase at the block level.  The blocks are organized as:
+* – Page size x1: 2176 bytes (2048 + 128 bytes)
+* – Block size: 64 pages (128K + 8K bytes)
+* – Plane size: 1Gb (1024 blocks per plane)
+*
+* @author original: Victoria modified by Hab Collector \n
+*
+* @note: The follow sequence is necessary to erase a block: Write Enable, Block Erase, Get Features
+*
+* @param hospi: OctoSpi Handler
+* @param BlockAddress: Address of the block to be erased.  Address must resolve to a block
+*
+* STEP 1: Load command struct
+* STEP 2: Execute command
+* *****************************************************************************************************/
+void OSPI_Erase_Block(OSPI_HandleTypeDef *hospi, uint32_t BlockAddress)
+{
+    // STEP 1: Load command struct
+    OSPI_RegularCmdTypeDef  sCommand;
+    sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
+    sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
+    sCommand.InstructionMode    = HAL_OSPI_INSTRUCTION_1_LINE;
+    sCommand.InstructionSize    = HAL_OSPI_INSTRUCTION_8_BITS;
+    sCommand.InstructionDtrMode = HAL_OSPI_INSTRUCTION_DTR_DISABLE;
+    sCommand.AddressSize        = HAL_OSPI_ADDRESS_32_BITS;
+    sCommand.AddressDtrMode     = HAL_OSPI_ADDRESS_DTR_DISABLE;
+    sCommand.AlternateBytesMode = HAL_OSPI_ALTERNATE_BYTES_NONE;
+    sCommand.DataDtrMode        = HAL_OSPI_DATA_DTR_DISABLE;
+    sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
+    sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
+    sCommand.Instruction        = MT29F_CMD_BLOCK_ERASE;
+    sCommand.AddressMode        = HAL_OSPI_ADDRESS_1_LINE;
+    sCommand.Address            = BlockAddress;
+    sCommand.DataMode           = HAL_OSPI_DATA_NONE;
+    sCommand.DummyCycles        = 0;
+
+    // STEP 2: Execute command
+    if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+    {
+        Error_Handler();
+    }
+
+} // END OF OSPI_Erase_Block
 
 
 
@@ -270,38 +290,7 @@ void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi)
 }
 
 
-void OSPI_Erase_Block(OSPI_HandleTypeDef *hospi)//address needed
-{
-	  OSPI_RegularCmdTypeDef  sCommand;
 
-	  sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
-	  sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
-	  sCommand.InstructionMode    = HAL_OSPI_INSTRUCTION_1_LINE;
-	  sCommand.InstructionSize    = HAL_OSPI_INSTRUCTION_8_BITS;
-	  sCommand.InstructionDtrMode = HAL_OSPI_INSTRUCTION_DTR_DISABLE;
-	  sCommand.AddressSize        = HAL_OSPI_ADDRESS_32_BITS;
-	  //sCommand.AddressSize        = HAL_OSPI_ADDRESS_24_BITS;
-	  sCommand.AddressDtrMode     = HAL_OSPI_ADDRESS_DTR_DISABLE;
-	  sCommand.AlternateBytesMode = HAL_OSPI_ALTERNATE_BYTES_NONE;
-	  sCommand.DataDtrMode        = HAL_OSPI_DATA_DTR_DISABLE;
-	  sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
-	  sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
-
-	  sCommand.Instruction =  0xD8;
-	  sCommand.AddressMode = HAL_OSPI_ADDRESS_1_LINE;
-	  sCommand.Address     = ADDR;//address;
-	  sCommand.DataMode    = HAL_OSPI_DATA_NONE;
-	  sCommand.DummyCycles = 0;
-
-
-	  if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-      {
-        Error_Handler();
-
-      }
-
-
-}
 
 
 
@@ -515,11 +504,6 @@ void OSPI_Read_ID(OSPI_HandleTypeDef *hospi)
 }
 
 
-
-void UselessFunct(void)
-{
-
-}
 
 void CS_HIGH(void)
 {

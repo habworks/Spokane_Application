@@ -105,7 +105,7 @@ int main(void)
   MX_UART4_Init();
   MX_UART5_Init();
   MX_USART2_UART_Init();
- // MX_FATFS_Init();
+  MX_FATFS_Init();
   MX_USB_HOST_Init();
   /* USER CODE BEGIN 2 */
   //HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_SET);

@@ -27,6 +27,8 @@ Core/Src \
 Core/Startup \
 Drivers/SPI_FLASH/MT29F2G01 \
 Drivers/STM32L4xx_HAL_Driver/Src \
+FATFS/App \
+FATFS/Target \
 Middlewares/Console \
 Middlewares/Partition_Manager \
 Middlewares/Queue \

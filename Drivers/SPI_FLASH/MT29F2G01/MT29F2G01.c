@@ -533,7 +533,7 @@ bool readWriteCompare(void)
 
 void initTest(void)
 {
-    ReadWriteCount = 65530;
+    ReadWriteCount = 0;
     ADDR = 2048 * ReadWriteCount;
     uint8_t Value = 0;
     memset(aTxBuffer, 0x00, sizeof(aTxBuffer));

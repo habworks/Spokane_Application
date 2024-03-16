@@ -91,10 +91,11 @@
 					</folderInfo>
 					<fileInfo id="com.st.stm32cube.ide.mcu.gnu.managedbuild.config.exe.debug.2032934804.98969618" name="i2c.h" rcbsApplicability="disable" resourcePath="Core/Inc/i2c.h" toolsToInvoke=""/>
 					<sourceEntries>
+						<entry excluding="SPI/ACI_OSPI.h|SPI/ACI_OSPI.c|IIS2MDC|I2C" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry excluding="Inc/i2c.h" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
 						<entry excluding="QBG96|Nimbelink_QBG96_RX_Handler.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-						<entry excluding="SPI/ACI_OSPI.h|SPI/ACI_OSPI.c|IIS2MDC|I2C" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB_HOST"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -280,12 +281,13 @@
 						</tool>
 					</fileInfo>
 					<sourceEntries>
-						<entry excluding="Radar_Peek.h|Radar_Peek.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
-						<entry excluding="QBG96/wdg_powerdown.c|QBG96/wdg_sn.c|QBG96/wdg_test_ac.c|QBG96/wdg_test.c|QBG96/wdg_offline.c|QBG96/wdg_online.c|QBG96/ok_wdg.c|QBG96/super_ping.c|QBG96/Nimbelink_debug.h|QBG96/Nimbelink_debug.c|ST|UART|Scheduler|LG77LICMD|GPIO|Queue|Console" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
-						<entry excluding="SPI/ACI_OSPI.h|SPI/ACI_OSPI.c|LG77LICMD|Scheduler|Queue|GPIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares/Queue"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares/Scheduler"/>
+						<entry excluding="Radar_Peek.h|Radar_Peek.c" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Core"/>
+						<entry excluding="QBG96/wdg_powerdown.c|QBG96/wdg_sn.c|QBG96/wdg_test_ac.c|QBG96/wdg_test.c|QBG96/wdg_offline.c|QBG96/wdg_online.c|QBG96/ok_wdg.c|QBG96/super_ping.c|QBG96/Nimbelink_debug.h|QBG96/Nimbelink_debug.c|ST|UART|Scheduler|LG77LICMD|GPIO|Queue|Console" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Drivers"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="USB_HOST"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="FATFS"/>
+						<entry excluding="SPI/ACI_OSPI.h|SPI/ACI_OSPI.c|LG77LICMD|Scheduler|Queue|GPIO" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="Middlewares"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>

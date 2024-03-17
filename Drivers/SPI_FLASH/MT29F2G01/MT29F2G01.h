@@ -30,11 +30,15 @@ extern"C" {
 #define MT29F_CMD_PAGE_READ                 0x13
 #define MT29F_CMD_PROGRAM_EXECUTE           0x10
 #define MT29F_CMD_BLOCK_ERASE               0xD8
-// MT29F REGISTER_ADDRESS
+// MT29F REGISTER FEATURE ADDRESS
 #define MT29F_REG_BLOCK_LOCK                0xA0
 #define MT29F_REG_CONFIG                    0xB0
 #define MT29F_REG_STATUS                    0xC0
 #define MT29F_REG_DIE_SELECT                0xD0
+// MT29F BLOCK LOCK VALUES: Relates to TB, BP3, BP2, BP1, BP0 bits only - BRWD AND WP must be ORed with this value
+#define NONE_ALL_BLOCKS_UNLOCKED            0x00
+#define UPPER_1024_TO_2047_LOCKED           0x50
+#define UPPER_0000_TO_1023_LOCKED           0x54
 // MT29F STATUS REGISTER MASK
 #define MT29F_STATUS_MASK_OIP               ((uint8_t)(0x01 << 0))
 #define MT29F_STATUS_MASK_WEL               ((uint8_t)(0x01 << 1))
@@ -76,9 +80,10 @@ typedef struct
 
 // FUNCTION PROTOTYPES
 void OSPI_Reset(OSPI_HandleTypeDef *hospi);
-uint8_t OSPI_Get_Features(OSPI_HandleTypeDef *hospi);
+uint8_t OSPI_Get_Features(OSPI_HandleTypeDef *hospi, uint8_t FeatureAddress);
 void OSPI_WriteEnable(OSPI_HandleTypeDef *hospi);
 void OSPI_Erase_Block(OSPI_HandleTypeDef *hospi, uint32_t BlockAddress);
+void OSPI_Set_Features(OSPI_HandleTypeDef *hospi, uint8_t FeatureAddress, uint8_t *ConfigValue);
 
 
 MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef * bus_handle);
@@ -88,7 +93,6 @@ void OSPI_Program_Execute(OSPI_HandleTypeDef *hospi);
 void OSPI_Page_Read(OSPI_HandleTypeDef *hospi);
 void OSPI_Read_Cache_X4(OSPI_HandleTypeDef *hospi);
 void OSPI_Read_ID(OSPI_HandleTypeDef *hospi);
-void OSPI_Set_Features(OSPI_HandleTypeDef *hospi);
 
 
 bool readWriteCompare(void);

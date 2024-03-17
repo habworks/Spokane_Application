@@ -89,24 +89,21 @@ void Init_Some(void * Task_Data)//Is a task
 	    printf("Hello Hab\r\n");
 	    initTest();
 		state ++;
-		break;
-
 	}
+	break;
 
 	case 1:// INIT DRIVERS
 	{
-//		OSPI_Set_Features(&hospi1);//0x1F
+	    uint8_t BlockConfigValue = NONE_ALL_BLOCKS_UNLOCKED;
+		OSPI_Set_Features(&hospi1, MT29F_REG_BLOCK_LOCK, &BlockConfigValue);
 		OSPI_Reset(&hospi1);//0xFF
 //		OSPI_Set_Features(&hospi1);//0x1F
-		while ((OSPI_Get_Features(&hospi1) & MT29F_STATUS_MASK_OIP) != 0);
-	//	OSPI_Read_ID(&hospi1);//0x9F
-
-	//	OSPI_Set_Features(&hospi1);
+		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 
 		OSPI_WriteEnable(&hospi1);//0x06
 		do
 		{
-		    Status = OSPI_Get_Features(&hospi1);
+		    Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
 		} while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
 
 
@@ -115,61 +112,33 @@ void Init_Some(void * Task_Data)//Is a task
 		OSPI_Erase_Block(&hospi1, ADDR);
 		do
 		{
-		    Status = OSPI_Get_Features(&hospi1);
+		    Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
 		} while ((Status & MT29F_STATUS_MASK_OIP) != 0);
 		if (Status & MT29F_STATUS_MASK_E_FAIL)
 		    printf("ERROR: Fail to erase block\r\n");
-		//OSPI_WriteDisable(&hospi1);//0x04
-		//OSPI_Get_Features(&hospi1);//0x0f
-
-
 
 		state ++;
-		break;
 	}
-
-//    case 2:
-//    {//REad
-//        //Page read cmd
-//        OSPI_Page_Read(&hospi1);//0x13
-//        OSPI_Get_Features(&hospi1);//0x0f
-//        OSPI_Read_Cache_X4(&hospi1);//0x0B
-//
-////      UselessFunct();
-//        state ++;
-//        break;
-//    }
+	break;
 
 	case 2:
 	{
-		//Write
+		// Write
 		OSPI_WriteEnable(&hospi1);//0x06
-		OSPI_Get_Features(&hospi1);//0x0f
+		OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);//0x0f
 		OSPI_Program_Load(&hospi1);//0x02
 		OSPI_Program_Execute(&hospi1);//0x10
-		OSPI_Get_Features(&hospi1);//0x0f
-		//OSPI_WriteDisable(&hospi1);//0x04
-		//UselessFunct();
-		//******
-			//Create_USB_Drive();
-			//Make a task to check usb input
-			//Create_USB_CMDS();
-			//Start_Task(Mount_USB_FLASH, NULL, 500);
-		//******
-			//Create_Radar_CMDS();
-
-
+		OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);//0x0f
 		state ++;
-		break;
 	}
-	case 3:
-	{//REad
-		//Page read cmd
-		OSPI_Page_Read(&hospi1);//0x13
-		OSPI_Get_Features(&hospi1);//0x0f
-		OSPI_Read_Cache_X4(&hospi1);//0x0B
+	break;
 
-//		UselessFunct();
+	case 3:
+	{
+		// Read
+		OSPI_Page_Read(&hospi1);//0x13
+		OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);//0x0f
+		OSPI_Read_Cache_X4(&hospi1);//0x0B
 		state ++;
 		break;
 	}
@@ -191,11 +160,10 @@ void Init_Some(void * Task_Data)//Is a task
 	        while(1);
 	    }
 	    state = 2;
-		//HAL_GPIO_TogglePin (FLASH_CS_GPIO_Port, FLASH_CS_Pin);
-		//HAL_Delay(100);
-			break;
 	}
-	}
+	break;
+
+	} // END OF SWITCH
 }
 
 int _write(int file, char *ptr, int len)
@@ -204,7 +172,7 @@ int _write(int file, char *ptr, int len)
     {
         Error_Handler();
     }
-//    HAL_Delay(10);
+    HAL_Delay(1);
     return(len);
 
 } // END OF _write

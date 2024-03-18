@@ -22,8 +22,8 @@
 
 //uint8_t aTxBuffer[] = "!***OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA*END";
 //uint8_t aRxBuffer[BUFFERSIZE];
-uint8_t aTxBuffer[2048];
-uint8_t aRxBuffer[2048];
+uint8_t aTxBuffer[256];
+uint8_t aRxBuffer[256];
 
 uint8_t IDBuffer[2];
 
@@ -537,7 +537,7 @@ void CS_LOW(void)
 
 bool readWriteCompare(void)
 {
-    if (strncmp((char *)aRxBuffer, (char *)aTxBuffer, sizeof(aTxBuffer)) == 0)
+    if (memcmp((char *)aRxBuffer, (char *)aTxBuffer, sizeof(aTxBuffer)) == 0)
         return(true);
     else
         return(false);
@@ -546,7 +546,7 @@ bool readWriteCompare(void)
 
 void initTest(void)
 {
-    ReadWriteCount = 65530;
+    ReadWriteCount = 0;
     ADDR = 2048 * ReadWriteCount;
     uint8_t Value = 0;
     memset(aTxBuffer, 0x00, sizeof(aTxBuffer));

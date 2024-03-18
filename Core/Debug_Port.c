@@ -8,56 +8,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdbool.h>
-//#include "Console/Console.h"
 #include "Scheduler/Scheduler.h"
-//#include "usart.h"
-//#include "Console_Router.h"
-//#include "Debug_Port.h"
-//#include "UART/UART.h"
-//#include "LG77LICMD/LG77LICMD.h"
 #include "Debug_Port.h"
-//#include "ff.h"
-//#include "UART/UART.h"
-//#include "FAT_FS.h"
-//#include "fatfs.h"
-//#include "ACI_I2C.h"
-//#include "i2c.h"
-//#include "Partition_Manager.h"
-//#include "MAG.h"
-//#include "Radar_LOG_Parser.h"
-//#include "Nimbelink_QBG96.h"
-//#include "Radar_Check.h"
-//#include "Nimble_Check.h"
 #include "MT29F2G01.h"
 #include "octospi.h"
-//#include "SPI/ACI_SPI.h"
-//#include "SPI/ACI_OSPI.h"
 #include "spi.h"
 #include "usart.h"
 #include <string.h>
-
-//void InitDebugPort(void);
-//void InitGPS(void);
-//static void Print_Startup_Banner(void);
-//static void Print_USB_Help_Message(void * Device);
-//static void Mount_USB_FLASH(void * Task_Data);
-//static void Mount_Status(void);
-//void Create_USB_CMDS (void);
-//void InitUart(void);
-//void GPS_Module_RESET(void);
-//void Is_USB_Connected(void);
-//static void Create_USB_Drive(void);
-//extern uint8_t USB_MSD_Mounted;
-//FatFS_Drive * 					USB_Flash_Drive;
-//static bool Is_Mounted = false;
-
-//UART * UART_2;
-//UART * UART_4;
-//UART * UART_3;
-//GPIO *GPS_EN;
-//I2C * I2C_1;
-//I2C * I2C_2;
-
 
 MT29F2G01 * MT29F2G01_1;
 extern uint32_t ADDR;
@@ -88,7 +45,7 @@ void Init_Some(void * Task_Data)//Is a task
 	    printf("\033[2J\033[H");
 	    printf("Hello Hab\r\n");
 	    initTest();
-		state ++;
+		state++;
 	}
 	break;
 
@@ -106,9 +63,6 @@ void Init_Some(void * Task_Data)//Is a task
 		    Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
 		} while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
 
-
-
-
 		OSPI_Erase_Block(&hospi1, ADDR);
 		do
 		{
@@ -117,7 +71,7 @@ void Init_Some(void * Task_Data)//Is a task
 		if (Status & MT29F_STATUS_MASK_E_FAIL)
 		    printf("ERROR: Fail to erase block\r\n");
 
-		state ++;
+		state++;
 	}
 	break;
 
@@ -125,11 +79,15 @@ void Init_Some(void * Task_Data)//Is a task
 	{
 		// Write
 		OSPI_WriteEnable(&hospi1);//0x06
-		OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);//0x0f
+		do
+        {
+            Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
+        } while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
+
 		OSPI_Program_Load(&hospi1);//0x02
 		OSPI_Program_Execute(&hospi1);//0x10
-		OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);//0x0f
-		state ++;
+		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+		state++;
 	}
 	break;
 
@@ -137,24 +95,29 @@ void Init_Some(void * Task_Data)//Is a task
 	{
 		// Read
 		OSPI_Page_Read(&hospi1);//0x13
-		OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);//0x0f
+		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 		OSPI_Read_Cache_X4(&hospi1);//0x0B
-		state ++;
-		break;
+		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+		state++;
 	}
+	break;
 
 	case 4:
 	{
 	    ReadWriteCount++;
 	    if (readWriteCompare())
+	    {
 	        printf("OK Addr: %d  Count: %d\r\n", (int)ADDR, (int)ReadWriteCount);
+	    }
         else
+        {
             printf("ERROR Addr: %d\r\n", (int)ADDR);
+        }
 
 	    prepareForCompare();
 	    STATUS_LED_TOGGLE();
 	    ADDR += 2048;
-	    if (ADDR >= 268435456)
+	    if (ADDR >= 2048 * 5) //268435456)
 	    {
 	        printf("End of memory reached\r\n");
 	        while(1);

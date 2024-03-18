@@ -77,7 +77,7 @@ typedef struct
 {
 	OSPI_HandleTypeDef *    Bus_Handle;
 	uint16_t                MFG_Memory_ID;
-	uint8_t                 Working_Buff[4096];				// All work is done in 4K blocks, this buffer is working room.
+//	uint8_t                 Working_Buff[4096];				// All work is done in 4K blocks, this buffer is working room.
 } MT29F2G01;
 
 
@@ -93,8 +93,14 @@ void OSPI_Page_Read(OSPI_HandleTypeDef *hospi, uint32_t Address);
 void OSPI_Read_Cache(OSPI_HandleTypeDef *hospi, uint8_t ReadCachCommandType, uint32_t Address, uint8_t *DataBuffer, uint32_t DataBufferLength);
 uint16_t OSPI_Read_ID(OSPI_HandleTypeDef *hospi);
 
-MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef * bus_handle);
-void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi);
+
+bool MT29F2G01_Init(MT29F2G01 *Device);
+
+
+MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef *Bus_Handle);
+bool MT29F2G01_BlockErase(MT29F2G01 *Device, uint32_t Address);
+bool MT29F2G01_MemoryWrite(MT29F2G01* Device, uint32_t Address, uint8_t *TxBuffer, uint32_t TxBufferLength);
+bool MT29F2G01_MemoryRead(MT29F2G01* Device, uint32_t Address, uint8_t *RxBuffer, uint32_t RxBufferLength);
 
 
 

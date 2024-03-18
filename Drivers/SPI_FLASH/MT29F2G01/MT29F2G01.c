@@ -527,19 +527,96 @@ uint16_t OSPI_Read_ID(OSPI_HandleTypeDef *hospi)
 
 
 
-MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef * bus_handle)
+MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef *Bus_Handle)
 {
 	MT29F2G01 * device = (MT29F2G01 *)malloc(sizeof(MT29F2G01));
 
-	device->Bus_Handle = bus_handle;
+	device->Bus_Handle = Bus_Handle;
 
 	return device;
 }
 
 
 
+bool MT29F2G01_Init(MT29F2G01 *Device)
+{
+    uint8_t BlockConfigValue = NONE_ALL_BLOCKS_UNLOCKED;
+    OSPI_Set_Features(Device->Bus_Handle, MT29F_REG_BLOCK_LOCK, &BlockConfigValue);
+
+    OSPI_Reset(Device->Bus_Handle);
+
+    while ((OSPI_Get_Features(Device->Bus_Handle, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+
+    Device->MFG_Memory_ID = OSPI_Read_ID(Device->Bus_Handle);
+
+    return(true);
+}
+
+bool MT29F2G01_BlockErase(MT29F2G01 *Device, uint32_t Address)
+{
+    uint8_t Status;
+    OSPI_WriteEnable(Device->Bus_Handle);
+    do
+    {
+        Status = OSPI_Get_Features(Device->Bus_Handle, MT29F_REG_STATUS);
+    } while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
+
+    OSPI_Erase_Block(Device->Bus_Handle, Address);
+    do
+    {
+        Status = OSPI_Get_Features(Device->Bus_Handle, MT29F_REG_STATUS);
+    } while ((Status & MT29F_STATUS_MASK_OIP) != 0);
+    if (Status & MT29F_STATUS_MASK_E_FAIL)
+        return(false);
+    else
+        return(true);
+
+}
+
+bool MT29F2G01_MemoryWrite(MT29F2G01* Device, uint32_t Address, uint8_t *TxBuffer, uint32_t TxBufferLength)
+{
+    OSPI_WriteEnable(Device->Bus_Handle);
+
+    uint8_t Status;
+    do
+    {
+        Status = OSPI_Get_Features(Device->Bus_Handle, MT29F_REG_STATUS);
+    } while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
+
+    OSPI_Program_Load(Device->Bus_Handle, MT29F_CMD_PROGRAM_LOAD_X1, Address, TxBuffer, TxBufferLength);
+
+    OSPI_Program_Execute(Device->Bus_Handle, Address);//0x10
+
+    while ((OSPI_Get_Features(Device->Bus_Handle, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+
+    return(true);
+}
+
+bool MT29F2G01_MemoryRead(MT29F2G01* Device, uint32_t Address, uint8_t *RxBuffer, uint32_t RxBufferLength)
+{
+    OSPI_Page_Read(Device->Bus_Handle, Address);
+
+    while ((OSPI_Get_Features(Device->Bus_Handle, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+
+    OSPI_Read_Cache(Device->Bus_Handle, MT29F_CMD_READ_CACHE_X1, Address, RxBuffer, RxBufferLength);
+
+    while ((OSPI_Get_Features(Device->Bus_Handle, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+
+    return(true);
+}
 
 
+
+
+
+
+
+
+
+
+
+
+#if(0)
 void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi)
 {
   OSPI_RegularCmdTypeDef  sCommand;
@@ -597,6 +674,7 @@ void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi)
 
 
 }
+#endif
 
 
 
@@ -612,16 +690,6 @@ void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi)
 
 
 
-
-void CS_HIGH(void)
-{
-    HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_SET);
-}
-
-void CS_LOW(void)
-{
-    HAL_GPIO_WritePin(FLASH_CS_GPIO_Port, FLASH_CS_Pin, GPIO_PIN_RESET);
-}
 
 
 

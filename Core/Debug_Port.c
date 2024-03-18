@@ -21,6 +21,7 @@ uint8_t aTxBuffer[BUFFERSIZE];
 uint8_t aRxBuffer[BUFFERSIZE];
 uint32_t ADDR;
 uint32_t ReadWriteCount = 0;
+MT29F2G01 *MT29F2G01_Device;
 
 static bool readWriteCompare(void);
 static void clearRxBuffer(void);
@@ -34,8 +35,8 @@ static void incTxBuffer(void);
  */
 void Debug_Task(void)
 {
-	Start_Task(Init_Some, NULL, 0);//start the state machiene
-
+    MT29F2G01_Device = Init_MT29F2G01(&hospi1);
+    Start_Task(Init_Some, NULL, 0);//start the state machiene
 }
 
 /**
@@ -61,36 +62,40 @@ void Init_Some(void * Task_Data)//Is a task
 	    state++;
 
 	    // Init Device: SET FEATURES, RESET, GET FEATURES
-	    uint8_t BlockConfigValue = NONE_ALL_BLOCKS_UNLOCKED;
-		OSPI_Set_Features(&hospi1, MT29F_REG_BLOCK_LOCK, &BlockConfigValue);
+//	    uint8_t BlockConfigValue = NONE_ALL_BLOCKS_UNLOCKED;
+//		OSPI_Set_Features(&hospi1, MT29F_REG_BLOCK_LOCK, &BlockConfigValue);
+//
+//		OSPI_Reset(&hospi1);
+//
+//		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 
-		OSPI_Reset(&hospi1);
 
-		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
-
-		uint16_t Memory_ID = OSPI_Read_ID(&hospi1);
-		printf("Device ID: 0x%04X\r\n", Memory_ID);
-		if (Memory_ID != MT29F2G_ID)
-		{
-		    printf("ERROR: Incorrect Device ID\r\n");
-		    Error_Handler();
-		}
+//		uint16_t Memory_ID = OSPI_Read_ID(&hospi1);
+//		printf("Device ID: 0x%04X\r\n", Memory_ID);
+//		if (Memory_ID != MT29F2G_ID)
+//		{
+//		    printf("ERROR: Incorrect Device ID\r\n");
+//		    Error_Handler();
+//		}
+	    MT29F2G01_Init(MT29F2G01_Device);
+	    printf("Device ID: 0x%04X\r\n", MT29F2G01_Device->MFG_Memory_ID);
 
 
 		// Block Erase: WRITE ENABLE, BLOCK ERASE, GET FEATURES
-		OSPI_WriteEnable(&hospi1);//0x06
-		do
-		{
-		    Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
-		} while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
-
-		OSPI_Erase_Block(&hospi1, ADDR);
-		do
-		{
-		    Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
-		} while ((Status & MT29F_STATUS_MASK_OIP) != 0);
-		if (Status & MT29F_STATUS_MASK_E_FAIL)
-		    printf("ERROR: Fail to erase block\r\n");
+//		OSPI_WriteEnable(&hospi1);//0x06
+//		do
+//		{
+//		    Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
+//		} while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
+//
+//		OSPI_Erase_Block(&hospi1, ADDR);
+//		do
+//		{
+//		    Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
+//		} while ((Status & MT29F_STATUS_MASK_OIP) != 0);
+//		if (Status & MT29F_STATUS_MASK_E_FAIL)
+//		    printf("ERROR: Fail to erase block\r\n");
+		MT29F2G01_BlockErase(MT29F2G01_Device, ADDR);
 	}
 	break;
 
@@ -100,17 +105,18 @@ void Init_Some(void * Task_Data)//Is a task
 	    state++;
 
 	    // Write: WRITE ENABLE, PROGRAM LOAD, PROGRAM EXECUTE, GET FEATURES
-		OSPI_WriteEnable(&hospi1);
-		do
-        {
-            Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
-        } while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
-
-		OSPI_Program_Load(&hospi1, MT29F_CMD_PROGRAM_LOAD_X1, ADDR, aTxBuffer, BUFFERSIZE);
-
-		OSPI_Program_Execute(&hospi1, ADDR);//0x10
-
-		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+//		OSPI_WriteEnable(&hospi1);
+//		do
+//        {
+//            Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
+//        } while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
+//
+//		OSPI_Program_Load(&hospi1, MT29F_CMD_PROGRAM_LOAD_X1, ADDR, aTxBuffer, BUFFERSIZE);
+//
+//		OSPI_Program_Execute(&hospi1, ADDR);//0x10
+//
+//		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+	    MT29F2G01_MemoryWrite(MT29F2G01_Device, ADDR, aTxBuffer, BUFFERSIZE);
 	}
 	break;
 
@@ -120,13 +126,14 @@ void Init_Some(void * Task_Data)//Is a task
 	    state++;
 
 	    // Read: PAGE READ, GET FEATURES, READ FROM CACHE
-		OSPI_Page_Read(&hospi1, ADDR);
-
-		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
-
-		OSPI_Read_Cache(&hospi1, MT29F_CMD_READ_CACHE_X1, ADDR, aRxBuffer, BUFFERSIZE);
-
-		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+//		OSPI_Page_Read(&hospi1, ADDR);
+//
+//		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+//
+//		OSPI_Read_Cache(&hospi1, MT29F_CMD_READ_CACHE_X1, ADDR, aRxBuffer, BUFFERSIZE);
+//
+//		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+	    MT29F2G01_MemoryRead(MT29F2G01_Device, ADDR, aRxBuffer, BUFFERSIZE);
 	}
 	break;
 

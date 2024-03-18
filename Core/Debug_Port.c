@@ -19,6 +19,7 @@
 MT29F2G01 * MT29F2G01_1;
 extern uint32_t ADDR;
 extern uint32_t ReadWriteCount;
+extern uint8_t aTxBuffer[BUFFERSIZE];
 
 
 
@@ -85,8 +86,8 @@ void Init_Some(void * Task_Data)//Is a task
             Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
         } while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
 
-		OSPI_Program_Load(&hospi1);//0x02
-		OSPI_Program_Execute(&hospi1);//0x10
+		OSPI_Program_Load(&hospi1, MT29F_CMD_PROGRAM_LOAD_X1, ADDR, aTxBuffer, BUFFERSIZE);//0x02
+		OSPI_Program_Execute(&hospi1, ADDR);//0x10
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 		state++;
 	}
@@ -113,7 +114,7 @@ void Init_Some(void * Task_Data)//Is a task
 	    }
         else
         {
-            printf("ERROR Addr: %d\r\n", (int)ADDR);
+            printf("ERROR Addr: %d  Count: %d\r\n", (int)ADDR, (int)ReadWriteCount);
         }
 
 	    STATUS_LED_TOGGLE();

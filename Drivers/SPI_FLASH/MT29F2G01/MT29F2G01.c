@@ -20,15 +20,9 @@
 #include <stdio.h>
 
 
-//uint8_t aTxBuffer[] = "!***OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA*END";
-//uint8_t aRxBuffer[BUFFERSIZE];
-uint8_t aTxBuffer[BUFFERSIZE];
-uint8_t aRxBuffer[BUFFERSIZE];
 
 uint8_t IDBuffer[2];
 
-uint32_t ADDR = 0x00000000;
-uint32_t ReadWriteCount = 0;
 
 
 
@@ -426,8 +420,8 @@ void OSPI_Page_Read(OSPI_HandleTypeDef *hospi, uint32_t Address)
 * @param hospi: OctoSpi Handler
 * @param ReadCachCommandType: Type of data cache input 1 bit or nibble
 * @param Address: Address of memory to be programmed
-* @param DataBuffer: Buffer of data to be programmed to memory
-* @param DataBufferLength: Length of data
+* @param DataBuffer: Buffer of where to place read data
+* @param DataBufferLength: Length of data to be read
 *
 * @return void
 *
@@ -450,11 +444,11 @@ void OSPI_Read_Cache(OSPI_HandleTypeDef *hospi, uint8_t ReadCachCommandType, uin
     sCommand.DataDtrMode        = HAL_OSPI_DATA_DTR_DISABLE;
     sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
     sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
-    sCommand.Instruction        = ReadCachCommandType; //0x0B;//READ_CACHE_X4;
+    sCommand.Instruction        = ReadCachCommandType;
     sCommand.AddressMode        = HAL_OSPI_ADDRESS_1_LINE;
-    sCommand.Address            = Address; //ADDR;//0x00;
-    sCommand.DataMode           = HAL_OSPI_DATA_1_LINE;//HAL_OSPI_DATA_4_LINES;
-    sCommand.NbData             = DataBufferLength; //BUFFERSIZE+1;
+    sCommand.Address            = Address;
+    sCommand.DataMode           = HAL_OSPI_DATA_1_LINE;
+    sCommand.NbData             = DataBufferLength;
     sCommand.DummyCycles        = 8;
 
     // STEP 2: Execute command
@@ -469,7 +463,7 @@ void OSPI_Read_Cache(OSPI_HandleTypeDef *hospi, uint8_t ReadCachCommandType, uin
         Error_Handler();
     }
 
-} // END OF OSPI_Read_Cache_X4
+} // END OF OSPI_Read_Cache
 
 
 
@@ -609,38 +603,12 @@ void CS_LOW(void)
 }
 
 
-bool readWriteCompare(void)
-{
-    if (memcmp((char *)aRxBuffer, (char *)aTxBuffer, BUFFERSIZE) == 0)
-        return(true);
-    else
-        return(false);
-}
 
 
-void initTest(void)
-{
-    ReadWriteCount = 0;
-    ADDR = 2048 * ReadWriteCount;
-    uint8_t Value = 0;
-    memset(aTxBuffer, 0x00, sizeof(aTxBuffer));
-    for (uint16_t Index = 0; Index < (sizeof(aTxBuffer) - 8); Index++)
-    {
-        aTxBuffer[Index] = Value;
-        Value++;
-    }
-
-}
-
-void clearRxBuffer(void)
-{
-    memset(aRxBuffer, 0x00, sizeof(aRxBuffer));
-}
 
 
-void incTxBuffer(void)
-{
-    static uint8_t FillValue = 1;
-    memset(aTxBuffer, FillValue, BUFFERSIZE);
-    FillValue++;
-}
+
+
+
+
+

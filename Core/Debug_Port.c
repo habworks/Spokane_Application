@@ -17,10 +17,15 @@
 #include <string.h>
 
 MT29F2G01 * MT29F2G01_1;
-extern uint32_t ADDR;
-extern uint32_t ReadWriteCount;
-extern uint8_t aTxBuffer[BUFFERSIZE];
-extern uint8_t aRxBuffer[BUFFERSIZE];
+uint8_t aTxBuffer[BUFFERSIZE];
+uint8_t aRxBuffer[BUFFERSIZE];
+uint32_t ADDR;
+uint32_t ReadWriteCount = 0;
+
+static bool readWriteCompare(void);
+static void clearRxBuffer(void);
+static void initTest(void);
+static void incTxBuffer(void);
 
 
 
@@ -53,12 +58,17 @@ void Init_Some(void * Task_Data)//Is a task
 
 	case 1:// INIT DRIVERS
 	{
+	    state++;
+
+	    // Init Device: SET FEATURES, RESET, GET FEATURES
 	    uint8_t BlockConfigValue = NONE_ALL_BLOCKS_UNLOCKED;
 		OSPI_Set_Features(&hospi1, MT29F_REG_BLOCK_LOCK, &BlockConfigValue);
 
-		OSPI_Reset(&hospi1);//0xFF
+		OSPI_Reset(&hospi1);
+
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 
+		// Block Erase: WRITE ENABLE, BLOCK ERASE, GET FEATURES
 		OSPI_WriteEnable(&hospi1);//0x06
 		do
 		{
@@ -72,16 +82,15 @@ void Init_Some(void * Task_Data)//Is a task
 		} while ((Status & MT29F_STATUS_MASK_OIP) != 0);
 		if (Status & MT29F_STATUS_MASK_E_FAIL)
 		    printf("ERROR: Fail to erase block\r\n");
-
-		state++;
 	}
 	break;
 
 	case 2:
 	{
-		// Write
 	    incTxBuffer();
+	    state++;
 
+	    // Write: WRITE ENABLE, PROGRAM LOAD, PROGRAM EXECUTE, GET FEATURES
 		OSPI_WriteEnable(&hospi1);
 		do
         {
@@ -93,24 +102,22 @@ void Init_Some(void * Task_Data)//Is a task
 		OSPI_Program_Execute(&hospi1, ADDR);//0x10
 
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
-
-		state++;
 	}
 	break;
 
 	case 3:
 	{
-		// Read
 	    clearRxBuffer();
+	    state++;
 
+	    // Read: PAGE READ, GET FEATURES, READ FROM CACHE
 		OSPI_Page_Read(&hospi1, ADDR);
+
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 
 		OSPI_Read_Cache(&hospi1, MT29F_CMD_READ_CACHE_X1, ADDR, aRxBuffer, BUFFERSIZE);
 
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
-
-		state++;
 	}
 	break;
 
@@ -141,6 +148,35 @@ void Init_Some(void * Task_Data)//Is a task
 	} // END OF SWITCH
 }
 
+
+
+void initTest(void)
+{
+    ReadWriteCount = 0;
+    ADDR = 2048 * ReadWriteCount;
+    memset(aTxBuffer, 0x00, sizeof(aTxBuffer));
+}
+
+static bool readWriteCompare(void)
+{
+    if (memcmp((char *)aRxBuffer, (char *)aTxBuffer, BUFFERSIZE) == 0)
+        return(true);
+    else
+        return(false);
+}
+
+static void clearRxBuffer(void)
+{
+    memset(aRxBuffer, 0x00, sizeof(aRxBuffer));
+}
+
+static void incTxBuffer(void)
+{
+    static uint8_t FillValue = 1;
+    memset(aTxBuffer, FillValue, BUFFERSIZE);
+    FillValue++;
+}
+
 int _write(int file, char *ptr, int len)
 {
     if (HAL_UART_Transmit_IT(&huart2, (uint8_t *)ptr, len) != HAL_OK)
@@ -151,6 +187,17 @@ int _write(int file, char *ptr, int len)
     return(len);
 
 } // END OF _write
+
+
+
+
+
+
+
+
+
+
+
 
 
 

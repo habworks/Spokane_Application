@@ -102,10 +102,7 @@ void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi);
 void OSPI_Read_ID(OSPI_HandleTypeDef *hospi);
 
 
-bool readWriteCompare(void);
-void clearRxBuffer(void);
-void initTest(void);
-void incTxBuffer(void);
+
 
 #ifdef __cplusplus
 }

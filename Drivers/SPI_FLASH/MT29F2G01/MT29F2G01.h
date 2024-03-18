@@ -88,12 +88,13 @@ void OSPI_Erase_Block(OSPI_HandleTypeDef *hospi, uint32_t BlockAddress);
 void OSPI_Set_Features(OSPI_HandleTypeDef *hospi, uint8_t FeatureAddress, uint8_t *ConfigValue);
 void OSPI_Program_Load(OSPI_HandleTypeDef *hospi, uint8_t ProgramCommandType, uint32_t Address, uint8_t *DataBuffer, uint32_t DataLength);
 void OSPI_Program_Execute(OSPI_HandleTypeDef *hospi, uint32_t Address);
+void OSPI_Page_Read(OSPI_HandleTypeDef *hospi, uint32_t Address);
 
 MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef * bus_handle);
 void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi);
 //void OSPI_Program_Load(OSPI_HandleTypeDef *hospi);
 //void OSPI_Program_Execute(OSPI_HandleTypeDef *hospi);
-void OSPI_Page_Read(OSPI_HandleTypeDef *hospi);
+//void OSPI_Page_Read(OSPI_HandleTypeDef *hospi);
 void OSPI_Read_Cache_X4(OSPI_HandleTypeDef *hospi);
 void OSPI_Read_ID(OSPI_HandleTypeDef *hospi);
 

@@ -97,7 +97,7 @@ void Init_Some(void * Task_Data)//Is a task
 	{
 		// Read
 	    clearRxBuffer();
-		OSPI_Page_Read(&hospi1);//0x13
+		OSPI_Page_Read(&hospi1, ADDR);//0x13
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 		OSPI_Read_Cache_X4(&hospi1);//0x0B
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);

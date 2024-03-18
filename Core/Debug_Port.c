@@ -78,6 +78,7 @@ void Init_Some(void * Task_Data)//Is a task
 	case 2:
 	{
 		// Write
+	    incTxBuffer();
 		OSPI_WriteEnable(&hospi1);//0x06
 		do
         {
@@ -94,6 +95,7 @@ void Init_Some(void * Task_Data)//Is a task
 	case 3:
 	{
 		// Read
+	    clearRxBuffer();
 		OSPI_Page_Read(&hospi1);//0x13
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 		OSPI_Read_Cache_X4(&hospi1);//0x0B
@@ -114,11 +116,11 @@ void Init_Some(void * Task_Data)//Is a task
             printf("ERROR Addr: %d\r\n", (int)ADDR);
         }
 
-	    prepareForCompare();
 	    STATUS_LED_TOGGLE();
 	    ADDR += 2048;
-	    if (ADDR >= 2048 * 5) //268435456)
+	    if (ADDR >= 2048 * 32) //268435456)
 	    {
+	        HAL_Delay(10);
 	        printf("End of memory reached\r\n");
 	        while(1);
 	    }

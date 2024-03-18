@@ -22,8 +22,8 @@
 
 //uint8_t aTxBuffer[] = "!***OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA****  ****OSPI communication based on DMA*END";
 //uint8_t aRxBuffer[BUFFERSIZE];
-uint8_t aTxBuffer[256];
-uint8_t aRxBuffer[256];
+uint8_t aTxBuffer[BUFFERSIZE];
+uint8_t aRxBuffer[BUFFERSIZE];
 
 uint8_t IDBuffer[2];
 
@@ -31,9 +31,6 @@ uint32_t ADDR = 0x00000000;
 uint32_t ReadWriteCount = 0;
 
 
-void UselessFunct(void);
-void CS_HIGH(void);
-void CS_LOW(void);
 
 
 /******************************************************************************************************
@@ -537,7 +534,7 @@ void CS_LOW(void)
 
 bool readWriteCompare(void)
 {
-    if (memcmp((char *)aRxBuffer, (char *)aTxBuffer, sizeof(aTxBuffer)) == 0)
+    if (memcmp((char *)aRxBuffer, (char *)aTxBuffer, BUFFERSIZE) == 0)
         return(true);
     else
         return(false);
@@ -556,12 +553,17 @@ void initTest(void)
         Value++;
     }
 
-    prepareForCompare();
 }
 
-void prepareForCompare(void)
+void clearRxBuffer(void)
 {
     memset(aRxBuffer, 0x00, sizeof(aRxBuffer));
 }
 
 
+void incTxBuffer(void)
+{
+    static uint8_t FillValue = 1;
+    memset(aTxBuffer, FillValue, BUFFERSIZE);
+    FillValue++;
+}

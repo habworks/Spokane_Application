@@ -20,6 +20,7 @@ MT29F2G01 * MT29F2G01_1;
 extern uint32_t ADDR;
 extern uint32_t ReadWriteCount;
 extern uint8_t aTxBuffer[BUFFERSIZE];
+extern uint8_t aRxBuffer[BUFFERSIZE];
 
 
 
@@ -54,8 +55,8 @@ void Init_Some(void * Task_Data)//Is a task
 	{
 	    uint8_t BlockConfigValue = NONE_ALL_BLOCKS_UNLOCKED;
 		OSPI_Set_Features(&hospi1, MT29F_REG_BLOCK_LOCK, &BlockConfigValue);
+
 		OSPI_Reset(&hospi1);//0xFF
-//		OSPI_Set_Features(&hospi1);//0x1F
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 
 		OSPI_WriteEnable(&hospi1);//0x06
@@ -80,15 +81,19 @@ void Init_Some(void * Task_Data)//Is a task
 	{
 		// Write
 	    incTxBuffer();
-		OSPI_WriteEnable(&hospi1);//0x06
+
+		OSPI_WriteEnable(&hospi1);
 		do
         {
             Status = OSPI_Get_Features(&hospi1, MT29F_REG_STATUS);
         } while( ((Status & MT29F_STATUS_MASK_OIP) != 0) || ((Status & MT29F_STATUS_MASK_WEL) != MT29F_STATUS_MASK_WEL) );
 
-		OSPI_Program_Load(&hospi1, MT29F_CMD_PROGRAM_LOAD_X1, ADDR, aTxBuffer, BUFFERSIZE);//0x02
+		OSPI_Program_Load(&hospi1, MT29F_CMD_PROGRAM_LOAD_X1, ADDR, aTxBuffer, BUFFERSIZE);
+
 		OSPI_Program_Execute(&hospi1, ADDR);//0x10
+
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+
 		state++;
 	}
 	break;
@@ -97,10 +102,14 @@ void Init_Some(void * Task_Data)//Is a task
 	{
 		// Read
 	    clearRxBuffer();
-		OSPI_Page_Read(&hospi1, ADDR);//0x13
+
+		OSPI_Page_Read(&hospi1, ADDR);
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
-		OSPI_Read_Cache_X4(&hospi1);//0x0B
+
+		OSPI_Read_Cache(&hospi1, MT29F_CMD_READ_CACHE_X1, ADDR, aRxBuffer, BUFFERSIZE);
+
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
+
 		state++;
 	}
 	break;

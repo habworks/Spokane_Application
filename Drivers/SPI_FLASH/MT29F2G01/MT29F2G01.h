@@ -32,6 +32,8 @@ extern"C" {
 #define MT29F_CMD_BLOCK_ERASE               0xD8
 #define MT29F_CMD_PROGRAM_LOAD_X1           0x02
 #define MT29F_CMD_PROGRAM_LOAD_X4           0x32
+#define MT29F_CMD_READ_CACHE_X1             0x0B
+#define MT29F_CMD_READ_CACHE_X4             0x6B
 // MT29F REGISTER FEATURE ADDRESS
 #define MT29F_REG_BLOCK_LOCK                0xA0
 #define MT29F_REG_CONFIG                    0xB0
@@ -89,13 +91,14 @@ void OSPI_Set_Features(OSPI_HandleTypeDef *hospi, uint8_t FeatureAddress, uint8_
 void OSPI_Program_Load(OSPI_HandleTypeDef *hospi, uint8_t ProgramCommandType, uint32_t Address, uint8_t *DataBuffer, uint32_t DataLength);
 void OSPI_Program_Execute(OSPI_HandleTypeDef *hospi, uint32_t Address);
 void OSPI_Page_Read(OSPI_HandleTypeDef *hospi, uint32_t Address);
+void OSPI_Read_Cache(OSPI_HandleTypeDef *hospi, uint8_t ReadCachCommandType, uint32_t Address, uint8_t *DataBuffer, uint32_t DataBufferLength);
 
 MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef * bus_handle);
 void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi);
 //void OSPI_Program_Load(OSPI_HandleTypeDef *hospi);
 //void OSPI_Program_Execute(OSPI_HandleTypeDef *hospi);
 //void OSPI_Page_Read(OSPI_HandleTypeDef *hospi);
-void OSPI_Read_Cache_X4(OSPI_HandleTypeDef *hospi);
+//void OSPI_Read_Cache_X4(OSPI_HandleTypeDef *hospi);
 void OSPI_Read_ID(OSPI_HandleTypeDef *hospi);
 
 

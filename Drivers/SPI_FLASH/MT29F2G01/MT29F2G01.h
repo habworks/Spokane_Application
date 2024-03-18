@@ -18,6 +18,7 @@ extern"C" {
 
 // DEFINES
 #define BUFFERSIZE    245
+#define MT29F2G_ID                        ((uint16_t)(0x242C))
 //#define MT29F2G01_FLASH_SIZE            0x00200000// 2GB
 //#define MT29F2G01_PAGE_SIZE             0x800//1 page is 2k
 //#define MT29F2G01_BLOCK_SIZE            0x022000//0x20000//128k
@@ -34,6 +35,7 @@ extern"C" {
 #define MT29F_CMD_PROGRAM_LOAD_X4           0x32
 #define MT29F_CMD_READ_CACHE_X1             0x0B
 #define MT29F_CMD_READ_CACHE_X4             0x6B
+#define MT29F_CMD_READ_ID                   0X9F
 // MT29F REGISTER FEATURE ADDRESS
 #define MT29F_REG_BLOCK_LOCK                0xA0
 #define MT29F_REG_CONFIG                    0xB0
@@ -67,19 +69,16 @@ extern"C" {
 //#define DUMMY_CLOCK_CYCLES_READ_QUAD         10
 //#define DUMMY_CLOCK_CYCLES_READ_REG             4
 //#define DUMMY_CLOCK_CYCLES_READ     6
-#define WRITE_ENABLE_MASK_VALUE     0x02
-#define WRITE_ENABLE_MATCH_VALUE     0x02
-//#define OCTAL_READ_STATUS_REG_CMD   0x05FA
-#define MEMORY_READY_MASK_VALUE     0x01
-#define MEMORY_READY_MATCH_VALUE    0x00
+
 
 
 // TYPEDEFS AND ENUMS
 typedef struct
 {
 	OSPI_HandleTypeDef *    Bus_Handle;
-	uint8_t Working_Buff[4096];				// All work is done in 4K blocks, this buffer is working room.
-}MT29F2G01;
+	uint16_t                MFG_Memory_ID;
+	uint8_t                 Working_Buff[4096];				// All work is done in 4K blocks, this buffer is working room.
+} MT29F2G01;
 
 
 // FUNCTION PROTOTYPES
@@ -92,14 +91,11 @@ void OSPI_Program_Load(OSPI_HandleTypeDef *hospi, uint8_t ProgramCommandType, ui
 void OSPI_Program_Execute(OSPI_HandleTypeDef *hospi, uint32_t Address);
 void OSPI_Page_Read(OSPI_HandleTypeDef *hospi, uint32_t Address);
 void OSPI_Read_Cache(OSPI_HandleTypeDef *hospi, uint8_t ReadCachCommandType, uint32_t Address, uint8_t *DataBuffer, uint32_t DataBufferLength);
+uint16_t OSPI_Read_ID(OSPI_HandleTypeDef *hospi);
 
 MT29F2G01 * Init_MT29F2G01(OSPI_HandleTypeDef * bus_handle);
 void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi);
-//void OSPI_Program_Load(OSPI_HandleTypeDef *hospi);
-//void OSPI_Program_Execute(OSPI_HandleTypeDef *hospi);
-//void OSPI_Page_Read(OSPI_HandleTypeDef *hospi);
-//void OSPI_Read_Cache_X4(OSPI_HandleTypeDef *hospi);
-void OSPI_Read_ID(OSPI_HandleTypeDef *hospi);
+
 
 
 

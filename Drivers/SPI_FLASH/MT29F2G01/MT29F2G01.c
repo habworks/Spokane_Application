@@ -14,16 +14,9 @@
  */
 
 #include "MT29F2G01.h"
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
-
-
-
-uint8_t IDBuffer[2];
-
-
 
 
 
@@ -411,6 +404,7 @@ void OSPI_Page_Read(OSPI_HandleTypeDef *hospi, uint32_t Address)
 } // END OF OSPI_Page_Read
 
 
+
 /******************************************************************************************************
 * @brief Used to changed the contents of memory.  This command must be precede by a write enable followed
 * by a Program execute.
@@ -464,6 +458,69 @@ void OSPI_Read_Cache(OSPI_HandleTypeDef *hospi, uint8_t ReadCachCommandType, uin
     }
 
 } // END OF OSPI_Read_Cache
+
+
+
+/******************************************************************************************************
+* @brief Read ID returns a two byte value that represents the Mfg ID and the Device ID.
+* MFG ID:       0x2C (Micron) Byte 0
+* Device ID:    0x24 2Gb 3.3V Byte 1
+*
+* @author original: Victoria modified by Hab Collector \n
+*
+* @param hospi: OctoSpi Handler
+*
+* @return Memory ID as a uint16_t
+*
+* STEP 1: Load command struct
+* STEP 2: Execute command
+* STEP 3: Transmit the configuration
+* STEP 4: Return the result
+* *****************************************************************************************************/
+uint16_t OSPI_Read_ID(OSPI_HandleTypeDef *hospi)
+{
+    uint16_t Device_ID;
+    uint8_t Memory_ID[2];
+
+    // STEP 1: Load command struct
+    OSPI_RegularCmdTypeDef  sCommand;
+    sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
+    sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
+    sCommand.InstructionMode    = HAL_OSPI_INSTRUCTION_1_LINE;
+    sCommand.InstructionSize    = HAL_OSPI_INSTRUCTION_8_BITS;
+    sCommand.InstructionDtrMode = HAL_OSPI_INSTRUCTION_DTR_DISABLE;
+    sCommand.AddressSize        = HAL_OSPI_ADDRESS_16_BITS;
+    sCommand.AddressDtrMode     = HAL_OSPI_ADDRESS_DTR_DISABLE;
+    sCommand.AlternateBytesMode = HAL_OSPI_ALTERNATE_BYTES_NONE;
+    sCommand.DataDtrMode        = HAL_OSPI_DATA_DTR_DISABLE;
+    sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
+    sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
+    sCommand.Instruction        = MT29F_CMD_READ_ID;
+    sCommand.AddressMode        = HAL_OSPI_ADDRESS_NONE;
+    sCommand.Address            = 0x00;
+    sCommand.DataMode           = HAL_OSPI_DATA_1_LINE;//HAL_OSPI_DATA_4_LINES;
+    sCommand.NbData             = 2;
+    sCommand.DummyCycles        = 8;    // 1 Dummy byte;
+
+    // STEP 2: Execute command
+    if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+    {
+    Error_Handler();
+    }
+
+    // STEP 3: Transmit the configuration
+    if (HAL_OSPI_Receive(hospi, Memory_ID, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
+    {
+    Error_Handler();
+    }
+
+    // STEP 4: Return the result
+    Device_ID = Memory_ID[1];
+    Device_ID <<= 8;
+    Device_ID |= Memory_ID[0];
+    return(Device_ID);
+
+} // END OF OSPI_Read_ID
 
 
 
@@ -552,43 +609,7 @@ void OSPI_WriteDisable(OSPI_HandleTypeDef *hospi)
 
 
 
-void OSPI_Read_ID(OSPI_HandleTypeDef *hospi)
-{
-	 OSPI_RegularCmdTypeDef  sCommand;
-	 uint8_t reg[2];
 
-	 	 sCommand.OperationType      = HAL_OSPI_OPTYPE_COMMON_CFG;
-		  sCommand.FlashId            = HAL_OSPI_FLASH_ID_1;
-		  sCommand.InstructionMode    = HAL_OSPI_INSTRUCTION_1_LINE;
-		  sCommand.InstructionSize    = HAL_OSPI_INSTRUCTION_8_BITS;
-		  sCommand.InstructionDtrMode = HAL_OSPI_INSTRUCTION_DTR_DISABLE;
-		//  sCommand.AddressSize        = HAL_OSPI_ADDRESS_16_BITS;
-		  sCommand.AddressDtrMode     = HAL_OSPI_ADDRESS_DTR_DISABLE;
-		  sCommand.AlternateBytesMode = HAL_OSPI_ALTERNATE_BYTES_NONE;
-		  sCommand.DataDtrMode        = HAL_OSPI_DATA_DTR_DISABLE;
-		  sCommand.DQSMode            = HAL_OSPI_DQS_DISABLE;
-		  sCommand.SIOOMode           = HAL_OSPI_SIOO_INST_EVERY_CMD;
-
-	      sCommand.Instruction = 0x9F;//READ_CACHE_X4;
-	      sCommand.AddressMode = HAL_OSPI_ADDRESS_NONE;
-	      //sCommand.Address     = ADDR;
-	      sCommand.DataMode    = HAL_OSPI_DATA_1_LINE;//HAL_OSPI_DATA_4_LINES;
-	      sCommand.NbData      = 3;
-	      sCommand.DummyCycles = 0;//DUMFERSIZMY_CLOCK_CYCLES_READ;
-
-
-
-		 if (HAL_OSPI_Command(hospi, &sCommand, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-		 {
-		 	  Error_Handler();
-		 }
-
-		 if (HAL_OSPI_Receive(hospi, reg, HAL_OSPI_TIMEOUT_DEFAULT_VALUE) != HAL_OK)
-		 {
-		 	  Error_Handler();
-		 }
-		 printf("%d",reg[1]);
-}
 
 
 

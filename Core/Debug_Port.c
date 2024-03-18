@@ -68,6 +68,15 @@ void Init_Some(void * Task_Data)//Is a task
 
 		while ((OSPI_Get_Features(&hospi1, MT29F_REG_STATUS) & MT29F_STATUS_MASK_OIP) != 0);
 
+		uint16_t Memory_ID = OSPI_Read_ID(&hospi1);
+		printf("Device ID: 0x%04X\r\n", Memory_ID);
+		if (Memory_ID != MT29F2G_ID)
+		{
+		    printf("ERROR: Incorrect Device ID\r\n");
+		    Error_Handler();
+		}
+
+
 		// Block Erase: WRITE ENABLE, BLOCK ERASE, GET FEATURES
 		OSPI_WriteEnable(&hospi1);//0x06
 		do
@@ -137,7 +146,6 @@ void Init_Some(void * Task_Data)//Is a task
 	    ADDR += 2048;
 	    if (ADDR >= 2048 * 32) //268435456)
 	    {
-	        HAL_Delay(10);
 	        printf("End of memory reached\r\n");
 	        while(1);
 	    }
